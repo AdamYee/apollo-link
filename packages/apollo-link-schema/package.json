@@ -1,13 +1,20 @@
 {
-  "name": "apollo-link-error",
-  "version": "1.0.3",
-  "description": "Error Apollo Link for GraphQL Network Stack",
-  "author": "James Baxley <james@meteor.com>",
+  "name": "apollo-link-schema",
+  "version": "1.0.1",
+  "description": "Use a GraphQL Schema to request data",
+  "author": "Tomas Trescak <tomi.trescak@gmail.com>",
+  "contributors": [
+    "James Baxley <james@meteor.com>",
+    "Jonas Helfer <jonas@helfer.email>",
+    "jon wong <j@jnwng.com>",
+    "Sashko Stubailo <sashko@stubailo.com>",
+    "Zephraph <zephraph@gmail.com>"
+  ],
   "license": "MIT",
   "main": "./lib/bundle.umd.js",
-  "module": "./lib/index.js",
-  "jsnext:main": "./lib/index.js",
-  "typings": "./lib/index.d.ts",
+  "module": "./lib/schemaLink.js",
+  "jsnext:main": "./lib/schemaLink.js",
+  "typings": "./lib/schemaLink.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/apollographql/apollo-link.git"
@@ -22,7 +29,6 @@
     "build": "tsc -p .",
     "bundle": "rollup -c",
     "clean": "rimraf lib/* && rimraf coverage/*",
-    "coverage": "jest --coverage",
     "filesize": "npm run build && npm run build:browser",
     "lint":
       "tslint --type-check -p tsconfig.json -c ../../tslint.json src/*.ts",
@@ -37,12 +43,16 @@
   "dependencies": {
     "apollo-link": "^1.0.6"
   },
+  "peerDependencies": {
+    "graphql": "^0.11.0"
+  },
   "devDependencies": {
     "@types/graphql": "0.11.7",
     "@types/jest": "21.1.8",
     "browserify": "14.5.0",
     "graphql": "0.11.7",
     "graphql-tag": "2.6.0",
+    "graphql-tools": "2.12.0",
     "jest": "21.2.1",
     "rimraf": "2.6.1",
     "rollup": "0.52.1",

@@ -27,7 +27,7 @@ The HTTP Link relies on having `fetch` present in your runtime environment. If y
 
 ## Options
 HTTP Link takes an object with some options on it to customize the behavior of the link. If your server supports it, the HTTP link can also send over metadata about the request in the extensions field. To enable this, pass `includeExtensions` as true. The options you can pass are outlined below:
-- `uri`: the URI key can be either a string endpoint or default to "/graphql"
+- `uri`: the URI key is a string endpoint -- will default to "/graphql" if not specified
 - `includeExtensions`: allow passing the extensions field to your graphql server, defaults to false
 - `fetch`: a `fetch` compatiable API for making a request
 - `headers`: an object representing values to be sent as headers on the request
@@ -119,6 +119,7 @@ All error types inherit the `name`, `message`, and nullable `stack` properties f
 {
   response: Response;               // Object returned from fetch()
   statusCode: number;               // HTTP status code
+  bodyText: string                  // text that was returned from server
 };
 
 //type ServerError
@@ -127,6 +128,50 @@ All error types inherit the `name`, `message`, and nullable `stack` properties f
   response: Response;               // Object returned from fetch()
   statusCode: number;               // HTTP status code
 };
+```
+
+## Sending GET requests / custom fetching
+You can use the `fetch` option when creating an http-link to do a lot of custom networking. This is useful if you want to modify the request based on the headers calculated, send the request as a 'GET' via a query string, or calculate the uri based on the operation:
+
+#### Sending a GET request
+```js
+const customFetch = (uri, options) => {
+  const { body, ...newOptions } = options;
+  // turn the object into a query string, try `object-to-querystring` package
+  const queryString = objectToQuery(JSON.parse(body));
+  requestedString = uri + queryString;
+  return fetch(requestedString, newOptions);
+};
+const link = createHttpLink({
+  uri: "data",
+  fetchOptions: { method: "GET" },
+  fetch: customFetch
+});
+```
+
+#### Custom auth
+```js
+const customFetch = (uri, options) => {
+  const { header } = Hawk.client.header(
+    'http://example.com:8000/resource/1?b=1&a=2',
+    'GET',
+    { credentials: credentials, ext: 'some-app-data' }
+  );
+  options.headers.Authorization = header;
+  return fetch(uri, options);
+};
+
+const link = createHttpLink({ fetch: customFetch });
+```
+
+#### Dynamic URI from operation information
+```js
+const customFetch = (uri, options) => {
+  const { operationName } = JSON.parse(options.body);
+  return fetch(`${uri}/graph/graphql?opname=${operationName}`, options);
+};
+
+const link = createHttpLink({ fetch: customFetch });
 ```
 
 ## Upgrading from `apollo-fetch` / `apollo-client`

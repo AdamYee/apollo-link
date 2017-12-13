@@ -48,7 +48,7 @@
     {
       "name": "apollo-link-http",
       "path": "./packages/apollo-link-http/lib/bundle.min.js",
-      "maxSize": "4 Kb"
+      "maxSize": "4.01 Kb"
     },
     {
       "name": "apollo-link-polling",
@@ -58,7 +58,7 @@
     {
       "name": "apollo-link-retry",
       "path": "./packages/apollo-link-retry/lib/bundle.min.js",
-      "maxSize": "1 Kb"
+      "maxSize": "2 Kb"
     },
     {
       "name": "apollo-link-ws",
@@ -90,10 +90,10 @@
     "codecov": "3.0.0",
     "danger": "1.2.0",
     "lerna": "2.5.1",
-    "lint-staged": "5.0.0",
+    "lint-staged": "6.0.0",
     "pre-commit": "1.2.2",
-    "prettier": "1.8.2",
-    "ts-jest": "21.2.3",
-    "typescript": "2.6.1"
+    "prettier": "1.9.2",
+    "ts-jest": "21.2.4",
+    "typescript": "2.6.2"
   }
 }

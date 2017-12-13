@@ -1,6 +1,6 @@
 {
   "name": "apollo-link-context",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "An easy way to set and cache context changes for Apollo Link",
   "author": "James Baxley <james@meteor.com>",
   "license": "MIT",
@@ -22,6 +22,7 @@
     "build": "tsc -p .",
     "bundle": "rollup -c",
     "clean": "rimraf lib/* && rimraf coverage/*",
+    "coverage": "jest --coverage",
     "filesize": "npm run build && npm run build:browser",
     "lint":
       "tslint --type-check -p tsconfig.json -c ../../tslint.json src/*.ts",
@@ -34,21 +35,21 @@
     "watch": "tsc -w -p ."
   },
   "dependencies": {
-    "apollo-link": "^1.0.3"
+    "apollo-link": "^1.0.6"
   },
   "devDependencies": {
-    "@types/graphql": "0.11.6",
+    "@types/graphql": "0.11.7",
     "@types/jest": "21.1.8",
     "browserify": "14.5.0",
     "graphql": "0.11.7",
-    "graphql-tag": "2.5.0",
+    "graphql-tag": "2.6.0",
     "jest": "21.2.1",
     "rimraf": "2.6.1",
-    "rollup": "0.51.8",
-    "ts-jest": "21.2.3",
+    "rollup": "0.52.1",
+    "ts-jest": "21.2.4",
     "tslint": "5.8.0",
-    "typescript": "2.6.1",
-    "uglify-js": "3.1.10"
+    "typescript": "2.6.2",
+    "uglify-js": "3.2.2"
   },
   "jest": {
     "transform": {

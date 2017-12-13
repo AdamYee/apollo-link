@@ -1,8 +1,57 @@
-import { ApolloLink, Observable, RequestHandler } from 'apollo-link';
+import { ApolloLink, Observable, RequestHandler, Operation } from 'apollo-link';
 import { print } from 'graphql/language/printer';
 
 // types
 import { ApolloFetch } from 'apollo-fetch';
+
+export namespace HttpLink {
+  /**
+   * A function that generates the URI to use when fetching a particular operation.
+   */
+  export interface UriFunction {
+    (operation: Operation): string;
+  }
+
+  export interface Options {
+    /**
+     * The URI to use when fetching operations.
+     *
+     * Defaults to '/graphql'.
+     */
+    uri?: string | UriFunction;
+
+    /**
+     * Passes the extensions field to your graphql server.
+     *
+     * Defaults to false.
+     */
+    includeExtensions?: boolean;
+
+    /**
+     * A `fetch`-compatible API to use when making requests.
+     */
+    fetch?: GlobalFetch['fetch'];
+
+    /**
+     * An object representing values to be sent as headers on the request.
+     */
+    headers?: any;
+
+    /**
+     * The credentials policy you want to use for the fetch call.
+     */
+    credentials?: string;
+
+    /**
+     * Any overrides of the fetch options argument to pass to the fetch call.
+     */
+    fetchOptions?: any;
+  }
+}
+
+// For backwards compatibility.
+export import FetchOptions = HttpLink.Options;
+export import UriFunction = HttpLink.UriFunction;
 
 // XXX replace with actual typings when available
 declare var AbortController: any;
@@ -20,6 +69,7 @@ type ServerError = Error & {
 type ServerParseError = Error & {
   response: Response;
   statusCode: number;
+  bodyText: string;
 };
 
 type ClientParseError = Error & {
@@ -38,13 +88,17 @@ const throwServerError = (response, result, message) => {
 
 const parseAndCheckResponse = request => (response: Response) => {
   return response
-    .json()
-    .catch(e => {
-      const parseError = e as ServerParseError;
-      parseError.response = response;
-      parseError.statusCode = response.status;
-
-      throw parseError;
+    .text()
+    .then(bodyText => {
+      try {
+        return JSON.parse(bodyText);
+      } catch (err) {
+        const parseError = err as ServerParseError;
+        parseError.response = response;
+        parseError.statusCode = response.status;
+        parseError.bodyText = bodyText;
+        return Promise.reject(parseError);
+      }
     })
     .then(result => {
       if (response.status >= 300) {
@@ -68,14 +122,9 @@ const parseAndCheckResponse = request => (response: Response) => {
 };
 
 const checkFetcher = (fetcher: ApolloFetch | GlobalFetch['fetch']) => {
-  if (
-    (fetcher as ApolloFetch).use &&
-    (fetcher as ApolloFetch).useAfter &&
-    (fetcher as ApolloFetch).batchUse &&
-    (fetcher as ApolloFetch).batchUseAfter
-  ) {
+  if ((fetcher as ApolloFetch).use) {
     throw new Error(`
-      It looks like you're using apollo-fetch! Apollo Link now uses the native fetch
+      It looks like you're using apollo-fetch! Apollo Link now uses native fetch
       implementation, so apollo-fetch is not needed. If you want to use your existing
       apollo-fetch middleware, please check this guide to upgrade:
         https://github.com/apollographql/apollo-link/blob/master/docs/implementation.md
@@ -110,28 +159,18 @@ const createSignalIfSupported = () => {
   return { controller, signal };
 };
 
-export interface FetchOptions {
-  uri?: string;
-  fetch?: GlobalFetch['fetch'];
-  includeExtensions?: boolean;
-  credentials?: string;
-  headers?: any;
-  fetchOptions?: any;
-}
-
 const defaultHttpOptions = {
   includeQuery: true,
   includeExtensions: false,
 };
 
-export const createHttpLink = (
-  {
+export const createHttpLink = (linkOptions: HttpLink.Options = {}) => {
+  let {
     uri,
     fetch: fetcher,
     includeExtensions,
-    ...requestOptions,
-  }: FetchOptions = {},
-) => {
+    ...requestOptions
+  } = linkOptions;
   // dev warnings to ensure fetch is present
   warnIfNoFetch(fetcher);
   if (fetcher) checkFetcher(fetcher);
@@ -230,7 +269,7 @@ export const createHttpLink = (
 
 export class HttpLink extends ApolloLink {
   public requester: RequestHandler;
-  constructor(opts?: FetchOptions) {
+  constructor(opts?: HttpLink.Options) {
     super(createHttpLink(opts).request);
   }
 }
